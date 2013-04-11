@@ -31,6 +31,12 @@
 		// * has proper type
 		// * if the attribute is "readonly", it cannot be changed
 		// TA: 1.1, 1.2
+		var idl_type_check = {
+			"long": function( v ) { return typeof v === "number" && Math.round(v) === v; },
+			"float": function( v ) { return typeof v === "number"; },
+			"DOMString": function( v ) { return typeof v === "string"; },
+			"boolean": function( v ) { return typeof v === "boolean" }
+		};
 		[
 			["readonly", "long", "pointerId"],
 			["readonly", "long", "width"],
@@ -60,22 +66,10 @@
 			}
 
 			// type check
-			if ( type === "float" || type === "long" ) {
-				test(function() {
-					assert_equals(typeof event[name], "number",
-						name + " attribute of type " + type);
-				}, event.type + "." + name + " attribute is of type number (" + type + ")");
-			} else if ( type === "DOMString" ) {
-				test(function() {
-					assert_equals(typeof event[name], "string",
-						name + " attribute of type " + type);
-				}, event.type + "." + name + " attribute is of type string (" + type + ")");
-			} else {
-				test(function() {
-					assert_equals(typeof event[name], type,
-						name + " attribute of type " + type);
-				}, event.type + "." + name + " attribute is of type " + type);
-			}
+			test(function() {
+				assert_true(idl_type_check[type](event[name]),
+					name + " attribute of type " + type);
+			}, event.type + "." + name + " attribute is of type number (" + type + ")");
 		});
 
 		// Check the pressure value
