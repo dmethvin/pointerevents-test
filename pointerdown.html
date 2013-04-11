@@ -65,6 +65,11 @@
 					assert_equals(typeof event[name], "number",
 						name + " attribute of type " + type);
 				}, event.type + "." + name + " attribute is of type number (" + type + ")");
+			} else if ( type === "DOMString" ) {
+				test(function() {
+					assert_equals(typeof event[name], "string",
+						name + " attribute of type " + type);
+				}, event.type + "." + name + " attribute is of type string (" + type + ")");
 			} else {
 				test(function() {
 					assert_equals(typeof event[name], type,

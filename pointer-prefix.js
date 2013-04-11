@@ -1,12 +1,13 @@
 /*
  * As of 2013-04-11 there is only currently one pointerevent
- * implementation and it uses prefixed mixed-cap names.
- * To allow development of the tests, this file abstracts
- * out the names of the events and objects.
+ * implementation (Microsoft in Windows 8); it uses prefixed
+ * mixed-cap names. To allow development of the W3C tests,
+ * this file abstracts the names of the events and objects.
  */
  pointerPrefix = (function() {
 
-	// Use maxTouchPoints as our feature detect
+	// Use maxTouchPoints as our feature detect; this will
+	// probably need tweaking with new implementations.
 	if ( "maxTouchPoints" in window.navigator ) {
 		return {
 			vendorPrefixing: "",
@@ -21,6 +22,7 @@
 			gotpointercapture: "gotpointercapture",
 			lostpointercapture: "lostpointercapture",
 			maxTouchPoints: "maxTouchPoints",
+			touchAction: "touch-action",
 			PointerEvent: MSPointerEvent
 		};		
 	}
@@ -38,6 +40,7 @@
 			gotpointercapture: "gotpointercapture",
 			lostpointercapture: "lostpointercapture",
 			maxTouchPoints: "msMaxTouchPoints",
+			touchAction: "-ms-touch-action",
 			PointerEvent: MSPointerEvent
 		};
 	}
