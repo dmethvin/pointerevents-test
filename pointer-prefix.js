@@ -5,7 +5,7 @@
  * properties. To simplify development of the W3C tests,
  * this file abstracts names of the events and properties.
  */
- pointerPrefix = (function() {
+pointerPrefix = (function() {
 
 	// Use maxTouchPoints as our feature detect; this will
 	// probably need tweaking with new implementations.
@@ -25,8 +25,10 @@
 			maxTouchPoints: "maxTouchPoints",
 			pointerType: { "mouse": "mouse", "touch": "touch", "stylus": "stylus" },
 			touchAction: "touch-action",
-			PointerEvent: PointerEvent
-		};		
+			PointerEvent: PointerEvent,
+			setPointerCapture: "setPointerCapture",
+			releasePointerCapture: "releasePointerCapture"
+		};
 	}
 	else if ( "msMaxTouchPoints" in window.navigator ) {
 		return {
@@ -39,16 +41,17 @@
 			pointerout: "MSPointerOut",
 			pointerenter: "MSPointerEnter",
 			pointerleave: "MSPointerLeave",
-			gotpointercapture: "gotpointercapture",
-			lostpointercapture: "lostpointercapture",
+			gotpointercapture: "MSGotPointerCapture",
+			lostpointercapture: "MSLostPointerCapture",
 			maxTouchPoints: "msMaxTouchPoints",
 			pointerType: { "mouse": 4, "touch": 2, "stylus": 99 },
 			touchAction: "-ms-touch-action",
-			PointerEvent: MSPointerEvent
+			PointerEvent: MSPointerEvent,
+			setPointerCapture: "msSetPointerCapture",
+			releasePointerCapture: "msReleasePointerCapture"
 		};
 	}
 	else {
 		//TODO: Assert no pointer events?
 	}
- }());
- 
+}());
