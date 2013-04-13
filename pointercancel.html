@@ -122,8 +122,8 @@
 		var target0 = document.getElementById("target0");
 		var test_pointercancel = async_test("pointercancel event received");
 		var test_pointerout = async_test("pointerout event received");
-		var pointerdown_event;
-		var pointercancel_event;
+		var pointerdown_event = null;
+		var pointercancel_event = null;
 
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
 			pointerdown_event = event;
