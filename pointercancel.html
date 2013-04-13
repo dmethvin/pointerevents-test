@@ -159,9 +159,9 @@
 			test_pointerout.step(function()) {
 				assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
 					"pointerId is same for pointerout and pointercancel");
-				assert_equals(pointerOutEvent.pointerType, pointerdown_event.pointerType,
+				assert_equals(pointerOutEvent.pointerType, pointercancel_event.pointerType,
 					"pointerType is same for pointerout and pointercancel");
-				assert_equals(pointerOutEvent.isPrimary, pointerdown_event.isPrimary,
+				assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
 					"isPrimary is same for pointerout and pointercancel");
 			}
 		}
