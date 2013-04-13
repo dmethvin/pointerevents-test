@@ -16,22 +16,42 @@
 	<script src="./testharness.js"></script>
 	<script src="pointer-prefix.js"></script>
 	<script src="pointerevents.js"></script>
-
+	<script src="cookies.js"></script>
 	<script src="pointerout_test.js"></script>
 </head>
 <body onload="run()">
+  <div id="logger" 
+       style="width: 200px; float: right; border: 1px solid yellow">
+    [logger]
+  </div>
+
+  <form id="pointerType" 
+        style="float: right; 
+               border: 1px solid #666; 
+               background-color: #aaa;">  
+    <label for="pointerType">
+      Primary pointerType
+    </label>
+    <select name="pointerType">
+      <option></option>
+      <option value="mouse">Mouse</option>
+      <option value="pen">Pen Stylus</option>
+      <option value="touch">Touch Contact</option>
+    </select> 
+  </form>
 
 	<h1>Pointer Events pointerout Tests</h1>
 
 	<div id="target0">
 		Start with your pointing device inside this box then move outside. 
 	</div>
-
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
 	</div>
 
 	<div id="log"></div>
+
+	<script src="pointer-device.js"></script>
 
 </body>
 </html>
