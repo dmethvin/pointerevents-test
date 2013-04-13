@@ -25,7 +25,7 @@
 			function onPointerEvent(event) {
 				if (pointerCaptured) {
 					test(function() {
-						assert_true(event.type === pointerPrefix["gotpointercapture"],
+						assert_equals(event.type, pointerPrefix["gotpointercapture"],
 							"First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"])
 					}, "First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"]);
 					pointerCaptured = false;
@@ -33,7 +33,7 @@
 
 				if (pointerReleased) {
 					test(function() {
-						assert_true(event.type === pointerPrefix["lostpointercapture"],
+						assert_equals(event.type, pointerPrefix["lostpointercapture"],
 								"First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"])
 					}, "First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"]);
 					pointerReleased = false;
@@ -111,8 +111,8 @@
 <body onload="run()">
 	<h1>Pointer Events Capture Events Tests</h1>
 	<div id="target">
-		Click here
-	</div>
+		Click or tap here
+l	</div>
 	<div id="log"></div>
 </body>
 </html>
