@@ -120,10 +120,10 @@
 
 	function run() {
 		var target0 = document.getElementById("target0");
-		var test_pointercancel = async_test("pointercancel event received");
+		var test_pointerout = async_test("pointerout event received");
 		
 		var pointerdown_event = null;
-		var pointercancel_event = null;
+		var pointerout_event = null;
 
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
 			pointerdown_event = event;
@@ -132,47 +132,50 @@
 			detected_pointertypes[ event.pointerType ] = true;
 		});
 
-		// Capturing pointer cancel event
-		on_event(target0, pointerPrefix["pointercancel"], function(pointerCancelEvent) {
-			check_PointerEvent(pointerCancelEvent);
-			pointercancel_event = pointerCancelEvent;
-
-			// TA: 4.1, 4.2 
-			test_pointercancel.step(function() {
-				assert_equals(pointerCancelEvent.pointerId, pointerdown_event.pointerId,
-					"pointerId is same for pointercancel and pointerdown");
-				assert_equals(pointerCancelEvent.pointerType, pointerdown_event.pointerType,
-					"pointerType is same for pointercancel and pointerdown");
-				assert_equals(pointerCancelEvent.isPrimary, pointerdown_event.isPrimary,
-					"isPrimary is same for pointercancel and pointerdown");
-			});
-
-			detected_pointertypes[ pointerCancelEvent.pointerType ] = true;
-
-			test_pointercancel.done();
-		});
-
-		//Capturing pointer out event
+        // Currently Pointer out is being fired after pointer down but the specification
+        // asks for pointer out after pointer cancel change these tests after this bug is resolved
+        // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21686
+		
+		// Capturing pointer out event
 		on_event(target0, pointerPrefix["pointerout"], function(pointerOutEvent) {
 			check_PointerEvent(pointerOutEvent);
+			pointerout_event = pointerOutEvent;
 
-			//Pointer cancel does not always happen before pointer out
-			console.log("value of  pointercancel" +  pointercancel_event.pointerId)
-			if(pointercancel_event != null)
+			// TA: 4.1, 4.2 
+			test_pointerout.step(function() {
+				assert_equals(pointerOutEvent.pointerId, pointerdown_event.pointerId,
+					"pointerId is same for pointerout and pointerdown");
+				assert_equals(pointerOutEvent.pointerType, pointerdown_event.pointerType,
+					"pointerType is same for pointerout and pointerdown");
+				assert_equals(pointerOutEvent.isPrimary, pointerdown_event.isPrimary,
+					"isPrimary is same for pointerout and pointerdown");
+			});
+
+			detected_pointertypes[ pointerOutEvent.pointerType ] = true;
+
+			test_pointerout.done();
+		});
+
+		//Capturing pointer cancel event	
+		on_event(target0, pointerPrefix["pointercancel"], function(pointerCancelEvent) {
+			check_PointerEvent(pointerCancelEvent);
+
+			//Pointer out happens before pointer cancel
+			if(pointerout_event != null)
 			{
-				var test_pointerout = async_test("pointerout event received");
+				var test_pointercancel = async_test("pointercancel event received");
 				//TA: 4.3
-				test_pointerout.step(function() {
-					assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
+				test_pointercancel.step(function() {
+					assert_equals(pointerCancelEvent.pointerId, pointerout_event.pointerId,
 						"pointerId is same for pointerout and pointercancel");
-					assert_equals(pointerOutEvent.pointerType, pointercancel_event.pointerType,
+					assert_equals(pointerCancelEvent.pointerType, pointerout_event.pointerType,
 						"pointerType is same for pointerout and pointercancel");
-					assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
+					assert_equals(pointerCancelEvent.isPrimary, pointerout_event.isPrimary,
 						"isPrimary is same for pointerout and pointercancel");
 				});
-				detected_pointertypes[ pointerOutEvent.pointerType ] = true;
+				detected_pointertypes[ pointerCancelEvent.pointerType ] = true;
 
-				test_pointerout.done();
+				test_pointercancel.done();
 			}
 		});
 	}
