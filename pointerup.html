@@ -156,7 +156,7 @@
 			// The pointerOut event that we can test is the one fired after the Pointer up event
 			if (pointerup_event != null)
 			{
-			    var test_pointerout = async("test pointer out event received");
+			    var test_pointerout = async_test("test pointer out event received");
 				test_pointerout.step(function() {
 				   switch(event.pointerType)
 				   {
@@ -212,7 +212,8 @@
 	<h1>Pointer Events pointerup Tests</h1>
 	<div id="target0">
 		Start with your pointing device outside of this box, then click here and release the mouse button/touch point. <br/>
-		If using a mouse, do NOT remove the mouse cursor out of this box until tests complete
+		If using a mouse, do NOT remove the mouse cursor out of this box until tests complete <br/>
+		Note that touch input test cases require that your input device does not support hover capability
 	</div>
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
