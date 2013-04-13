@@ -18,6 +18,7 @@
 	<script>
 	setup({ explicit_done: true });
 
+
 	var detected_pointertypes = {};
 	add_completion_callback(showPointerTypes);
 
@@ -182,7 +183,12 @@
 	}
 
 	function showPointerTypes() {
-		var complete_notice = document.getElementById("complete-notice");
+        // Determining max touch points
+        var touch_points_required = document.getElementById("touch-points-required");
+        touch_points_required.innerHTML = pointerPrefix.maxTouchPoints() + 1;
+
+        var complete_notice = document.getElementById("complete-notice");
+
 		var pointertype_log = document.getElementById("pointertype-log");
 		var pointertypes = Object.keys(detected_pointertypes);
 		pointertype_log.innerHTML = pointertypes.length ?
@@ -213,7 +219,7 @@
 <body onload="run()">
 	<h1>Pointer Events pointercancel Tests</h1>
 	<div id="target0">
-		Start with your pointing device outside of this box, then tap here with 8 fingers.
+		Start with your pointing device outside of this box, then tap here with <span id ="touch-points-required" /> fingers.
 		<br/>
 		After tapping hold your breath and don't touch/move mouse untill tests are run
 	</div>
