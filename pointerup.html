@@ -120,15 +120,12 @@
 
 	function run() {
 		var target0 = document.getElementById("target0");
-		var test_pointerdown = async_test("pointerdown event received");
 		var test_pointerup = async_test("pointerup event received");
 		var pointerdown_event;
-		var pointerdown_id;
 		
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
 			pointerdown_event = event;
 			check_PointerEvent(event);
-            pointerdown_id = event.pointerId;
 			detected_pointertypes[ event.pointerType ] = true;
 		});
 		
@@ -137,16 +134,18 @@
 			check_PointerEvent(event);
 			test_pointerup.step(function() {
 			    //TA 3.1
-				assert_equals(event.pointerType, pointerup_event.pointerType,
-					"pointerType is same for pointerover and pointerdown");
+				assert_equals(event.pointerType, pointerdown_event.pointerType,
+					"pointerType is same for pointerdown and pointerup");
 				//TA 3.2
-				assert_equals(event.isPrimary, pointerover_event.isPrimary,
-					"isPrimary is same for pointerover and pointerdown");
+				assert_equals(event.isPrimary, pointerdown_event.isPrimary,
+					"isPrimary is same for pointerdown and pointerup");
+					assert_equals(event.pointerId, pointerdown_event.pointerId,
+					"pointerID is same for pointerdown and pointerup");
 			});
 
 			detected_pointertypes[ event.pointerType ] = true;
 
-			test_pointerdown.done();
+			test_pointerup.done();
 		});
 	}
 
