@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below)
+-->
+<head>
+	<title>Pointer Events pointerdown Tests</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:blsaws@gmail.com">
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="./testharness.js"></script>
+	<script src="pointer-prefix.js"></script>
+	<script>
+	
+	// Pointer event test template (common) functions
+	setup({ explicit_done: true });
+
+	// Check for conformance to Pointer interface pointerover event on img element
+	// TA: 6.1	When a pointing device is moved into the hit test boundaries of an element, the pointerover event must be dispatched.	
+	// An img is rendered on the screen. 
+	// Starting with the pointer outside the element, moving the pointer over the element should trigger the pointerover event.
+	var test_pointerover = async_test("pointerover event received");
+	var pointerover = function(event) {
+		assert_equals(event.type,"MSPointerOver","event type is pointerover");
+		test_pointerover.done();
+	}
+	
+	// run() must be called on the load event because target elements are undefined until the document is loaded
+	function run() {
+		var target0 = document.getElementById("target0");
+		test_pointerover.step(function() { target0.addEventListener("MSPointerOver", pointerover, false);});
+	}
+		
+	</script>
+	<style>
+		div {
+			margin: 0em;
+			padding: 2em;
+		}
+		#target0 {
+			background: yellow;
+			border: 1px solid orange;
+		}
+		#complete-notice {
+			background: #afa;
+			border: 1px solid #0a0;
+			display: none;
+		}
+		#pointertype-log {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body onload="run()">
+	<h1>Pointer Events pointerover Tests</h1>
+	Start with your pointing device outside of this image, and then move it over the image.<br/>
+	<img id="target0" src="http://www.w3.org/Icons/w3c_home"/>
+	<div id="log"></div>
+</body>
+</html>
