@@ -48,7 +48,7 @@
 		};
 	}
 	else {
-		//TODO: Assert no pointer events?
+    throw new Error("Touch Events not supported.");
 	}
  }());
  
