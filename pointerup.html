@@ -120,8 +120,9 @@
 
 	function run() {
 		var target0 = document.getElementById("target0");
-		var test_pointerup = async_test("pointerup event received");
-		var pointerdown_event;
+		var test_pointerup = async_test("pointerup event received");		
+		var pointerdown_event = null;
+		var pointerup_event = null;
 		
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
 			pointerdown_event = event;
@@ -132,6 +133,7 @@
 		//TA 3.3
 		on_event(target0, pointerPrefix["pointerup"], function(event) {
 			check_PointerEvent(event);
+			pointerup_event = event;
 			test_pointerup.step(function() {
 			    //TA 3.1
 				assert_equals(event.pointerType, pointerdown_event.pointerType,
@@ -145,7 +147,35 @@
 
 			detected_pointertypes[ event.pointerType ] = true;
 
-			test_pointerup.done();
+			test_pointerup.done();			
+		});
+		
+		//TA 3.6
+		on_event(target0, pointerPrefix["pointerout"], function(event) {
+			check_PointerEvent(event);
+			// The pointerOut event that we can test is the one fired after the Pointer up event
+			if (pointerup_event != null)
+			{
+			    var test_pointerout = async("test pointer out event received");
+				test_pointerout.step(function() {
+				   switch(event.pointerType)
+				   {
+					   case 4: //Mouse
+						assert_true(true);
+					   break;
+					   default: //pen or touch
+						assert_equals(event.pointerType, pointerup_event.pointerType,
+							"pointerType is same for pointerup and pointerout");
+						assert_equals(event.isPrimary, pointerup_event.isPrimary,
+							"isPrimary is same for pointerup and pointerout");
+						assert_equals(event.pointerId, pointerup_event.pointerId,
+							"pointerID is same for pointerup and pointerdown");
+					}
+				});
+
+				detected_pointertypes[ event.pointerType ] = true;
+				test_pointerout.done();	
+			}
 		});
 	}
 
@@ -181,7 +211,8 @@
 <body onload="run()">
 	<h1>Pointer Events pointerup Tests</h1>
 	<div id="target0">
-		Start with your pointing device outside of this box, then click here and release the mouse button.
+		Start with your pointing device outside of this box, then click here and release the mouse button/touch point. <br/>
+		If using a mouse, do NOT remove the mouse cursor out of this box until tests complete
 	</div>
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
