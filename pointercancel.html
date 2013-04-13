@@ -121,7 +121,7 @@
 	function run() {
 		var target0 = document.getElementById("target0");
 		var test_pointercancel = async_test("pointercancel event received");
-		var test_pointerout = async_test("pointerout event received");
+		
 		var pointerdown_event = null;
 		var pointercancel_event = null;
 
@@ -159,6 +159,7 @@
 			//Pointer cancel does not always happen before pointer out
 			if(pointercancel_event != null)
 			{
+				var test_pointerout = async_test("pointerout event received");
 				//TA: 4.3
 				test_pointerout.step(function() {
 					assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
