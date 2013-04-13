@@ -156,18 +156,22 @@
 		on_event(target0, pointerPrefix["pointerout"], function(pointerOutEvent) {
 			check_PointerEvent(pointerOutEvent);
 
-			//TA: 4.3
-			test_pointerout.step(function() {
-				assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
-					"pointerId is same for pointerout and pointercancel");
-				assert_equals(pointerOutEvent.pointerType, pointercancel_event.pointerType,
-					"pointerType is same for pointerout and pointercancel");
-				assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
-					"isPrimary is same for pointerout and pointercancel");
-			});
-			detected_pointertypes[ event.pointerType ] = true;
+			//Pointer cancel does not always happen before pointer out
+			if(pointercancel_event != null)
+			{
+				//TA: 4.3
+				test_pointerout.step(function() {
+					assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
+						"pointerId is same for pointerout and pointercancel");
+					assert_equals(pointerOutEvent.pointerType, pointercancel_event.pointerType,
+						"pointerType is same for pointerout and pointercancel");
+					assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
+						"isPrimary is same for pointerout and pointercancel");
+				});
+				detected_pointertypes[ event.pointerType ] = true;
 
-			test_pointercancel.done();
+				test_pointercancel.done();
+			}
 		});
 	}
 
