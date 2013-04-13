@@ -8,7 +8,7 @@
 <head>
 	<title>Pointer Events pointerdown Tests</title>
 	<meta name="viewport" content="width=device-width">
-	<link rel="author" href="mailto:scott.gonzalez@gmail.com">
+	<link rel="author" href="mailto:shruti@malugu.com">
 	<link rel="author" href="mailto:dave.methvin@gmail.com">
 	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
 	<!-- http://w3c-test.org/resources/testharness.js -->
@@ -109,7 +109,7 @@
 					event.type + ".isPrimary is true for mouse");
 			}, event.type + " properties for pointerType=mouse");
 		// Check properties for pointers other than mouse
-		} else {
+		} else{
 			// TA: 1.12
 			test(function() {
 				assert_true(event.pointerId !== 1,
@@ -121,23 +121,25 @@
 	function run() {
 		var target0 = document.getElementById("target0");
 		var test_pointerdown = async_test("pointerdown event received");
-		var pointerover_event;
-
-		on_event(target0, pointerPrefix["pointerover"], function(event) {
-			pointerover_event = event;
+		var test_pointerup = async_test("pointerup event received");
+		var pointerdown_event;
+		var pointerdown_id;
+		
+		on_event(target0, pointerPrefix["pointerdown"], function(event) {
+			pointerdown_event = event;
 			check_PointerEvent(event);
-
+            pointerdown_id = event.pointerId;
 			detected_pointertypes[ event.pointerType ] = true;
 		});
-
-		// TA: 2.1, 2.2, 2.3
-		on_event(target0, pointerPrefix["pointerdown"], function(event) {
+		
+		//TA 3.3
+		on_event(target0, pointerPrefix["pointerup"], function(event) {
 			check_PointerEvent(event);
-
-			// TA: 2.4
-			test_pointerdown.step(function() {
-				assert_equals(event.pointerType, pointerover_event.pointerType,
+			test_pointerup.step(function() {
+			    //TA 3.1
+				assert_equals(event.pointerType, pointerup_event.pointerType,
 					"pointerType is same for pointerover and pointerdown");
+				//TA 3.2
 				assert_equals(event.isPrimary, pointerover_event.isPrimary,
 					"isPrimary is same for pointerover and pointerdown");
 			});
@@ -178,9 +180,9 @@
 	</style>
 </head>
 <body onload="run()">
-	<h1>Pointer Events pointerdown Tests</h1>
+	<h1>Pointer Events pointerup Tests</h1>
 	<div id="target0">
-		Start with your pointing device outside of this box, then click here.
+		Start with your pointing device outside of this box, then click here and release the mouse button.
 	</div>
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
