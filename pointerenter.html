@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below) written by Cathy Chan
+-->
+<head>
+	<title>Pointer Events pointerenter Tests</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:jen.leong@gmail.com">	
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="./testharness.js"></script>
+	<script>
+	//setup({ explicit_done: true });
+
+	var test_pointerenter = async_test("pointerenter event received");
+	</script>
+	<style>
+		div {
+			margin: 0em;
+			padding: 2em;
+		}
+		#target0 {
+			background: yellow;
+			border: 1px solid orange;
+		}
+		#complete-notice {
+			background: #afa;
+			border: 1px solid #0a0;
+			display: none;
+		}
+		#pointertype-log {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+	<h1>Pointer Events pointerenter Tests</h1>
+	<!-- TA: 8.1 -->
+	<div id="target0" onpointerenter="test_pointerenter.done();">
+		Start with your pointing device outside of this box, then move it over here.
+	</div>
+	<div id="complete-notice">
+		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
+		<p>Would you like to <a href="#">run the tests again</a> with a different pointer type?</p>
+	</div>
+	<div id="log"></div>
+</body>
+</html>
