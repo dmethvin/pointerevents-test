@@ -1,8 +1,9 @@
 /*
  * As of 2013-04-11 there is only currently one pointerevent
  * implementation (Microsoft in Windows 8); it uses prefixed
- * mixed-cap names. To allow development of the W3C tests,
- * this file abstracts the names of the events and objects.
+ * mixed-cap for event names and prefixes its JavaScript
+ * properties. To simplify development of the W3C tests,
+ * this file abstracts names of the events and properties.
  */
  pointerPrefix = (function() {
 
@@ -22,8 +23,9 @@
 			gotpointercapture: "gotpointercapture",
 			lostpointercapture: "lostpointercapture",
 			maxTouchPoints: "maxTouchPoints",
+			pointerType: { "mouse": "mouse", "touch": "touch", "stylus": "stylus" },
 			touchAction: "touch-action",
-			PointerEvent: MSPointerEvent
+			PointerEvent: PointerEvent
 		};		
 	}
 	else if ( "msMaxTouchPoints" in window.navigator ) {
@@ -40,6 +42,7 @@
 			gotpointercapture: "gotpointercapture",
 			lostpointercapture: "lostpointercapture",
 			maxTouchPoints: "msMaxTouchPoints",
+			pointerType: { "mouse": 4, "touch": 2, "stylus": 99 },
 			touchAction: "-ms-touch-action",
 			PointerEvent: MSPointerEvent
 		};
