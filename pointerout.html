@@ -11,14 +11,13 @@
 	<link rel="author" href="mailto:scott.gonzalez@gmail.com">
 	<link rel="author" href="mailto:dave.methvin@gmail.com">
 	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<link rel="stylesheet" href="pointerevents.css">
 	<!-- http://w3c-test.org/resources/testharness.js -->
 	<script src="./testharness.js"></script>
 	<script src="pointer-prefix.js"></script>
-	<script src="pointerevents.js">
-	<script src="pointerout_test.js">
-	</script>
-	<style>
-	</style>
+	<script src="pointerevents.js"></script>
+
+	<script src="pointerout_test.js"></script>
 </head>
 <body onload="run()">
 
@@ -30,7 +29,6 @@
 
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
-		<p>Would you like to <a href="#">run the tests again</a> with a different pointer type?</p>
 	</div>
 
 	<div id="log"></div>

@@ -48,7 +48,8 @@
 		};
 	}
 	else {
-    throw new Error("Touch Events not supported.");
+    return {};
+    //     throw new Error("Touch Events not supported.");
 	}
  }());
  
