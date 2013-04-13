@@ -157,6 +157,7 @@
 			check_PointerEvent(pointerOutEvent);
 
 			//Pointer cancel does not always happen before pointer out
+			console.log("value of  pointercancel" +  pointercancel_event.pointerId)
 			if(pointercancel_event != null)
 			{
 				var test_pointerout = async_test("pointerout event received");
