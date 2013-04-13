@@ -18,7 +18,7 @@
 	// Pointer event test template (common) functions
 	setup({ explicit_done: true });
 
-	// Check for conformance to Pointer interface pointerover event on span element
+	// Check for conformance to Pointer interface pointerover event on figure element
 	// TA: 6.1	When a pointing device is moved into the hit test boundaries of an element, the pointerover event must be dispatched.	
 	// An img is rendered on the screen. 
 	// Starting with the pointer outside the element, moving the pointer over the element should trigger the pointerover event.
@@ -56,11 +56,10 @@
 </head>
 <body onload="run()">
 	<h1>Pointer Events pointerover Tests</h1>
-	<span id="target0">
-	Start with your pointing device<br/>
-	outside of this paragraph,<br/>
-	and then move it over the text.
-	</span>
+	Start with your pointing device outside of the figure element below, move it over the figure.
+	<figure id="target0">
+		<img src="http://www.w3.org/Icons/w3c_home"/><br/>
+	</figure>
 	<div id="log"></div>
 </body>
 </html>
