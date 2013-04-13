@@ -138,7 +138,7 @@
 			test_pointercancel.step(function() {
 				assert_equals(event.pointerType, pointerdown_event.pointerType,
 					"pointerType is same for pointerdown and pointercancel");
-				assert_equals(event.isPrimary, pointerover_event.isPrimary,
+				assert_equals(event.isPrimary, pointerdown_event.isPrimary,
 					"isPrimary is same for pointerdown and pointercancel");
 			});
 
@@ -161,7 +161,7 @@
 	<style>
 		div {
 			margin: 0em;
-			padding: 2em;
+			padding: 5em;
 		}
 		#target0 {
 			background: yellow;
