@@ -1,27 +1,30 @@
+detected = false;
 
-// TA: 7.1  Pointing device is moved out of the hit test boundaries of an element
+on_event(target0, pointerPrefix["pointerdown"], function(event) {
+	detected_pointertypes[ event.pointerType ] = true;
+});
 
+// Harness 
+function run() {
+	var target0 = document.getElementById("target0");
 
-function check_PointerEvent(event) {
+	on_event(
+    target0, 
+    pointerPrefix["pointerdown"], 
+    function(event) {
+      detected = true; 
+	    detected_pointertypes["pointerdown"] = true;
 
-	test(function() {
-		assert_true(event instanceof pointerPrefix["PointerEvent"],
-				        "event is a PointerEvent event");
-	}, event.type + " event is a PointerEvent event");
-  
-  function run() {
-	  var target0 = document.getElementById("target0");
-	  var test_pointerdown = async_test("pointerdown event received");
-    
-	  var pointerdown_event;
-    
-	  on_event(target0, pointerPrefix["pointerdown"], function(event) {
-		  pointerdown_event = event;
-		  check_PointerEvent(event);
+      // TA: 7.1  Pointing device is moved out of the hit test boundaries of an element
+      test(
+        function() {
+	        assert_true(
+            detected,
+		        "pointerdown event seen");
+        }, 
+        "pointerdown");
       
-		  detected_pointertypes[ event.pointerType ] = true;
 	  });
-    
-    
+
 }
 
