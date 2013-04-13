@@ -163,8 +163,11 @@
 					"pointerType is same for pointerout and pointercancel");
 				assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
 					"isPrimary is same for pointerout and pointercancel");
-			}
-		}
+			});
+			detected_pointertypes[ event.pointerType ] = true;
+
+			test_pointercancel.done();
+		});
 	}
 
 	function showPointerTypes() {
