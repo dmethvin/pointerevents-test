@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<!--
+  Test cases for Pointer Events v1 spec
+
+  This document references Test Assertions (abbrev TA below) written by Cathy Chan.
+-->
+<head>
+  <title>Pointer Events Constructor Tests</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="author" href="mailto:mbrubeck@mozilla.com">
+  <link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions#Test_Assertions_for_PointerEvent_constructor">
+  <!-- http://w3c-test.org/resources/testharness.js -->
+  <script src="./testharness.js"></script>
+  <script src="pointer-prefix.js"></script>
+  <script>
+    var PointerEvent = pointerPrefix["PointerEvent"];
+
+    function run() {
+      test(function() {
+        assert_equals(typeof PointerEvent, "function", "Constructor is a function");
+      }, "Constructor exists");
+
+      test_constructor("pointerdown", null, "No dictionary");
+      test_constructor("pointerdown", {}, "Empty dictionary");
+      test_constructor("pointerdown", {x: 1}, "Dictionary with unknown attribute");
+      test_constructor("pointerdown", {pointerId: 42}, "Explicit pointerId");
+      test_constructor("x", null, "Unknown type");
+
+      test_constructor("pointerdown", {
+        pointerId: 5,
+        width: 20,
+        height: 30,
+        pressure: 0.1,
+        tiltX: 90,
+        tiltY: -45,
+        pointerType: "pen",
+        isPrimary: true
+      }, "Multiple attributes");
+    }
+
+    function test_constructor(type, dict, description) {
+      test(function() {
+        var event = dict ? new PointerEvent(type, dict) : new PointerEvent(type);
+        assert_true(event instanceof PointerEvent, "constructor returns a PointerEvent");
+        assert_equals(event.type, type, "event has expected type");
+        assert_false(event.isTrusted, "event is untrusted");
+
+        // Check that each attribute is set to the provided value, or the
+        // default value if no value was provided (TA: 12.1).
+        var defaults = [
+          // Attributes from Event:
+          ["bubbles", false],
+          ["cancelable", false],
+
+          // Attributes from UIEvent:
+          ["view", null],
+          ["detail", 0],
+
+          // Attributes from MouseEvent:
+          ["screenX", 0],
+          ["screenY", 0],
+          ["clientX", 0],
+          ["clientY", 0],
+          ["ctrlKey", false],
+          ["shiftKey", false],
+          ["altKey", false],
+          ["metaKey", false],
+          ["button", 0],
+          ["buttons", 0],
+          ["relatedTarget", null],
+
+          // Attributes for PointerEvent:
+          ["pointerId", 0],
+          ["width", 0],
+          ["height", 0],
+          ["pressure", 0],
+          ["tiltX", 0],
+          ["tiltY", 0],
+          ["pointerType", ""],
+          ["isPrimary", false]
+        ];
+        defaults.forEach(function(attr) {
+          var name = attr[0];
+          var defaultValue = attr[1];
+          var expected = defaultValue;
+          if (dict && name in dict) {
+            expected = dict[name];
+          }
+          assert_equals(event[name], expected, name + " has expected value.");
+        });
+      }, description);
+    }
+
+    run();
+  </script>
+</head>
+<body onload="">
+  <h1>Pointer Events PointerEvent Constructor Tests</h1>
+  <div id="log"></div>
+</body>
+</html>
