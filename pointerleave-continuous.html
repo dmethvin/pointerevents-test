@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below) written by Cathy Chan
+-->
+<head>
+	<title>Pointer Events pointerleave Test for continuous pointer movement through a child element</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:hillbrad@gmail.com">
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<script src="http://w3c-test.org/resources/testharness.js"></script>
+	<!--<script src="./testharness.js"></script>-->
+	<!--<script src="./pointer-prefix.js"></script>-->
+	<script>
+	setup({ explicit_done: true });
+
+	var detected_pointertypes = {};
+	//add_completion_callback(showPointerTypes);
+
+	var target0OutCount = 0;
+	var target1OutCount = 0;
+
+	var target0LeaveCount = 0;
+	var target1LeaveCount = 0;
+
+	var debugLog = "";
+
+	function showPointerTypes() {
+		var complete_notice = document.getElementById("complete-notice");
+		var pointertype_log = document.getElementById("pointertype-log");
+		var pointertypes = Object.keys(detected_pointertypes);
+		pointertype_log.innerHTML = "<p>pointerout events for cyan box: " + target1OutCount + "</p>" +
+		"<p>pointerout events for yellow box: " + target0OutCount + "</p>" +
+		"<p>pointerleave events for cyan box: " + target1LeaveCount + "</p>" +
+		"<p>pointerleave events for yellow box: " + target0LeaveCount + "</p>" + 
+		"<p>order: " + debugLog + "</p>";	
+		complete_notice.style.display = "block";
+	}
+
+
+	function run() {
+
+		
+		var target0 = document.getElementById("target0");
+		var target1 = document.getElementById("target1");
+		var start =   document.getElementById("startBox");
+		var end =     document.getElementById("endBox");
+
+		var testStarted = false;
+		var testDone = false;
+
+		var test_pointerleave = async_test("pointerleave sequence.");
+
+		on_event(start, pointerPrefix["pointerover"], function(event) {
+			testStarted = true;
+			debugLog = "";
+			target0OutCount = 0;
+			target1OutCount = 0;
+			target0LeaveCount = 0;
+			target1LeaveCount = 0;
+		});
+
+		on_event(target0, pointerPrefix["pointerout"], function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target0OutCount++;
+			debugLog += " pointerout[yellow]  ";
+		});
+
+		on_event(target1, pointerPrefix["pointerout"], function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target1OutCount++;
+			debugLog += " pointerout[cyan]  ";
+		});
+
+		// XXX this is using mouseleave, should be pointerPrefix["pointerleave"] but not implemented
+		on_event(target0, "mouseleave", function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target0LeaveCount++;
+			debugLog += " mouseleave[yellow]  ";
+		});
+
+		// XXX this is using mouseleave, should be pointerPrefix["pointerleave"] but not implemented
+		on_event(target1, "mouseleave", function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target1LeaveCount++;
+			debugLog += " mouseleave[cyan]  ";
+		});
+
+		// there should be 3 target0 out events because:
+		//    1) moving from yellow to cyan
+		//    2) moving from cyan to yellow bubbles up to yellow
+		//    3) moving out of yellow to the end target
+		//
+		// but because leave events don't bubble and don't fire on entering a child
+		// there should only be one leave event for the yellow box
+		on_event(end, pointerPrefix["pointerover"], function(event) {
+			if(testStarted && !testDone) {
+				testDone = true;
+				test_pointerleave.step(function () { 
+					assert_equals(target0OutCount, 3, "yellow box pointerout count");
+					assert_equals(target1OutCount, 1, "cyan box pointerout count");
+					assert_equals(target0LeaveCount, 1, "yellow box pointerleave count");
+					assert_equals(target1LeaveCount, 1, "cyan box pointerleave count");
+					} );
+				showPointerTypes();
+				test_pointerleave.done();	
+				done();
+			}
+		});
+		
+
+	}
+
+	
+
+
+	</script>
+
+
+	<!--  difference between over/out and enter/leave 
+
+	     when you enter a sub-element, you go out but do not leave
+
+	     e.g.
+
+	     Element A, Element B,   ^ is pointer moving horizontally across screen left-to-right.
+              
+	     ______________
+	     |A           |
+	     |   _______  |
+	     |   |B    |  |
+	    ^|   |     |  |
+	     |   _______  |
+	     |            |
+	     ______________
+
+
+	     ______________
+	     |A           |    
+	     |   _______  |	A: over, enter
+	     |   |B    |  |
+	     |^  |     |  |
+	     |   _______  |
+	     |            |
+	     ______________
+
+
+	     ______________
+	     |A           |
+	     |   _______  |   	A: out
+	     |   |B    |  |   	B: over, enter
+	     |   |  ^  |  |
+	     |   _______  |
+	     |            |
+	     ______________
+
+
+
+	     ______________
+	     |A           |
+	     |   _______  |
+	     |   |B    |  |  	A: enter
+	     |   |     |^ |  	B: out, leave
+	     |   _______  |
+	     |            |
+	     ______________
+
+
+
+	     ______________
+	     |A           |
+	     |   _______  |
+	     |   |B    |  |     A: out, leave
+	     |   |     |  | ^   B:  
+	     |   _______  |
+	     |            |
+	     ______________
+
+
+
+	     We also have an explicit end element because we can't trigger on either out or leave because 
+	     it isn't defined what relative those are dispatched, so it might vary by user agent,
+	     however both out and leave should be dispatched before over or enter on the end element
+
+        -->
+
+
+	<style>
+		div {
+			margin: 0em;
+			padding: 2em;
+		}
+		#startBox {
+			background: lightgreen;
+			border: 1px solid black;
+		}
+		#endBox {
+			background: pink;
+			border: 1px solid black;
+		}
+		#target0 {
+			background: yellow;
+			border: 1px solid orange;
+		}
+		#target1 {
+			background: cyan;
+			border: 1px solid orange;
+		}
+		#complete-notice {
+			background: #afa;
+			border: 1px solid #0a0;
+			display: none;
+		}
+		#pointertype-log {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body onload="run()">
+	<h1>Pointer Events pointerleave Test for continuous pointer movement through a child element</h1>
+	<h2>TODO: this test currently uses mouseleave events rather than pointerleave because pointerleave isn't implemented.</h2>
+	<div id="startBox">
+		Start with your pointer here.
+	</div>
+	<div id="target0">
+		Without lifting it, move your pointer into this yellow box.
+		<div id="target1">
+			Then into the cyan box.
+		</div>
+	</div>
+	<div id="endBox">
+		Then move your pointer out of both boxes and end here.
+	</div>
+	<div id="complete-notice">
+		<p>Data log: <span id="pointertype-log"></span>.</p>
+	</div>
+	<div id="log"></div>
+</body>
+</html>
