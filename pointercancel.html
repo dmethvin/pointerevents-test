@@ -156,7 +156,7 @@
 			check_PointerEvent(pointerOutEvent);
 
 			//TA: 4.3
-			test_pointerout.step(function()) {
+			test_pointerout.step(function() {
 				assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
 					"pointerId is same for pointerout and pointercancel");
 				assert_equals(pointerOutEvent.pointerType, pointercancel_event.pointerType,
