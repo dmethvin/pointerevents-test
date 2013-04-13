@@ -4,46 +4,53 @@ detected = false;
 // Harness 
 function run() {
 
+  // Page setup 
+  var target0 = document.getElementById("target0");
+  var event_tested  = "pointerout";
+
+
+
+  // Event logging 
   // Check each of the unique pointer events 
-  // id: [activityList] 
+  // id: {events: [], pointerType: pen} 
   eventStream = {}; 
 
-  function checkEventStream() { 
-    for (var pointer in eventStream) {
-      console.log('eventStream:' + pointer);
-      eventStream[pointer].forEach(
-        function(e, i, c) {
-          if (e === pointerPrefix['pointercancel']) {
-            assert_equals( 
-              c[i + 1],
-              pointerPrefix['pointerout']);
-          }
-        });
-    }
-  }; 
-  
- 
   // Log all events  
   var pointerEvents = 'pointerdown,pointerup,pointercancel,pointermove,pointerover,pointerout,pointerenter,pointerleave,gotpointercapture,lostpointercapture'.split(',');
 
   for (var i = 0; i < pointerEvents.length; i++)  {
+    //    console.log(pointerEvents[i] + ' logging on body');
     on_event(
-      body,
+      document.getElementsByTagName('body')[0],
       pointerPrefix[pointerEvents[i]],
       function(event) {
-        console.log(event.pointerId + event.type);
+        //        console.log(event.pointerId + event.type);
         if (eventStream[event.pointerId]) { 
-          eventStream[event.pointerId].push(event.type);
+          eventStream[event.pointerId].events.push(event.type);
         } else { 
-          eventStream[event.pointerId] = [event.type];
+          eventStream[event.pointerId] = {
+            events: [event.type],
+            pointerType: event.pointerType
+          };
         }
-      })
+      });
   }
 
-	var target0 = document.getElementById("target0");
+  // Process all of the scored events 
+  function processEventStream(f) { 
+    for (var pointer in eventStream) {
+      //      console.log('eventStream:' + pointer);
+      eventStream[pointer].events.forEach(
+        function(e, i, c) { 
+          f(e, i, c);
+        }
+      );
+    }
+  }; 
 
-  var event_tested  = "pointerout";
 
+  // TA: 7.1  Pointing device is moved out of the hit test boundaries
+  // of an element
 	on_event(
     target0, 
     pointerPrefix[event_tested], 
@@ -52,7 +59,6 @@ function run() {
       detected = true; 
 	    detected_pointertypes[event_tested] = true;
 
-      // TA: 7.1  Pointing device is moved out of the hit test boundaries of an element
       test(
         function() { 
 	        assert_true(
@@ -60,24 +66,38 @@ function run() {
 		        event_tested + " event seen");
         }, 
         '7.1  Pointing device is moved out of the hit test boundaries of an element');
-      
-
-
 	  });
+
+
+  // TA: 7.5 When touch, a device that does not support hover, after
+  // firing the pointerup event the pointerout event must be
+  // dispatched.
+
+
 
   // TA: 7.6	 After firing the pointercancel event the pointerout
   // event must be dispatched.	
-  console.log(JSON.stringify(eventStream));
-  var stTest = async_test('7.6 After firing the pointercancel event the pointerout event must be dispatched.');
   setTimeout(
     function () {
-      checkEventStream(); 
-      stTest.step(
-        function () {
-        }
-      );
-      stTest.done();
+      //      console.log(JSON.stringify(eventStream));
+      test(
+        function() {
+          processEventStream(
+            function(e, i, c) {
+              if (e === pointerPrefix['pointercancel']) {
+                console.log('FAIL: pointerout not after pointercancel:' + c);
+                // Not checking end of array works here since
+                // pointercancel shouldn't be last
+                assert_equals( 
+                  c[i + 1],
+                  pointerPrefix['pointerout']);
+              }
+            }
+          )
+        },
+        '7.6 After firing the pointercancel event the pointerout event must be dispatched.'
+      )
     }, 2000);
-
+  
 }
 
