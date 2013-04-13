@@ -122,6 +122,7 @@
 		var target0 = document.getElementById("target0");
 		var test_pointercancel = async_test("test_pointercancel event received");
 		var pointerdown_event;
+		var pointercancel_event;
 
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
 			pointerdown_event = event;
@@ -130,22 +131,40 @@
 			detected_pointertypes[ event.pointerType ] = true;
 		});
 
-		// TA: 
-		on_event(target0, pointerPrefix["pointercancel"], function(event) {
-			check_PointerEvent(event);
+		// Capturing pointer cancel event
+		on_event(target0, pointerPrefix["pointercancel"], function(pointerCancelEvent) {
+			check_PointerEvent(pointerCancelEvent);
+			pointercancel_event = pointerCancelEvent;
 
-			// TA: 
+			// TA: 4.1, 4.2 
 			test_pointercancel.step(function() {
-				assert_equals(event.pointerType, pointerdown_event.pointerType,
-					"pointerType is same for pointerdown and pointercancel");
-				assert_equals(event.isPrimary, pointerdown_event.isPrimary,
-					"isPrimary is same for pointerdown and pointercancel");
+				assert_equals(pointerCancelEvent.pointerId, pointerdown_event.pointerId,
+					"pointerId is same for pointercancel and pointerdown");
+				assert_equals(pointerCancelEvent.pointerType, pointerdown_event.pointerType,
+					"pointerType is same for pointercancel and pointerdown");
+				assert_equals(pointerCancelEvent.isPrimary, pointerdown_event.isPrimary,
+					"isPrimary is same for pointercancel and pointerdown");
 			});
 
 			detected_pointertypes[ event.pointerType ] = true;
 
 			test_pointercancel.done();
 		});
+
+		//Capturing pointer out event
+		on_event(target0, pointerPrefix["pointerout"], function(pointerOutEvent)) {
+			check_PointerEvent(pointerOutEvent);
+
+			//TA: 4.3
+			test_pointerout.step(function()) {
+				assert_equals(pointerOutEvent.pointerId, pointercancel_event.pointerId,
+					"pointerId is same for pointerout and pointercancel");
+				assert_equals(pointerOutEvent.pointerType, pointerdown_event.pointerType,
+					"pointerType is same for pointerout and pointercancel");
+				assert_equals(pointerOutEvent.isPrimary, pointerdown_event.isPrimary,
+					"isPrimary is same for pointerout and pointercancel");
+			}
+		}
 	}
 
 	function showPointerTypes() {
@@ -180,7 +199,7 @@
 <body onload="run()">
 	<h1>Pointer Events pointercancel Tests</h1>
 	<div id="target0">
-		Start with your pointing device outside of this box, then click here with 8 fingers.
+		Start with your pointing device outside of this box, then tap here with 8 fingers.
 	</div>
 	<div id="complete-notice">
 		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
