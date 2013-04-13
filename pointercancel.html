@@ -147,7 +147,7 @@
 					"isPrimary is same for pointercancel and pointerdown");
 			});
 
-			detected_pointertypes[ event.pointerType ] = true;
+			detected_pointertypes[ pointerCancelEvent.pointerType ] = true;
 
 			test_pointercancel.done();
 		});
@@ -168,7 +168,7 @@
 					assert_equals(pointerOutEvent.isPrimary, pointercancel_event.isPrimary,
 						"isPrimary is same for pointerout and pointercancel");
 				});
-				detected_pointertypes[ event.pointerType ] = true;
+				detected_pointertypes[ pointerOutEvent.pointerType ] = true;
 
 				test_pointercancel.done();
 			}
