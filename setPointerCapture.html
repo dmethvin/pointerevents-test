@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below) written by Cathy Chan
+-->
+<head>
+	<title>Pointer Events setPointerCapture() Tests</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:Jacob.Rossi@microsoft.com">
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="./testharness.js"></script>
+	<script>
+	setup({ explicit_done: true});
+	
+	function run() {
+		var target1 = document.getElementById("target1");
+		var target2 = document.getElementById("target2");
+		var captureTarget = document.getElementById("captureTarget");
+		var hasSetupHoverTest = false;
+        var hasSetupActiveTest = false;
+        
+		// setPointerCapture
+		// TA: 13.2
+		var hoverCaptureTest = async_test("setPointerCapture has no effect when no active buttons");
+		// TA: 13.3
+		var activeCaptureTest = async_test("setPointerCapture retargets events");
+		
+		test(function() {
+			// TA: 13.1
+			assert_throws({name: "InvalidPointerId"}, function() { document.body.setPointerCapture(-1) }, "setPointerCapture throws");
+		}, "setPointerCapture throws exception for invalid pointerId");
+		
+		target1.addEventListener("pointermove", function(evt) {
+			//Confirm no active buttons
+			if(!hasSetupHoverTest && evt.buttons === 0 && evt.button === -1) {
+				hasSetupHoverTest = true;
+				//Try to set capture to captureTarget off screen
+				captureTarget.msSetPointerCapture(evt.pointerId);
+				//Listen for next move. target should still be target1
+				window.addEventListener("pointermove", hoverCaptureTest.step_func(function(evt) {
+                    //Reset test by releasing capture in case it was actually set
+                    captureTarget.releasePointerCapture(evt.pointerId);
+					assert_equals(evt.target, target1, "target unchanged by capture");
+					hoverCaptureTest.done();
+				}), true);
+			}
+		});
+		
+		target2.addEventListener("pointerdown", function(evt) {
+            if(!hasSetupActiveTest) {
+                hasSetupActiveTest = true;
+                captureTarget.setPointerCapture(evt.pointerId);
+                window.addEventListener("pointerup", activeCaptureTest.step_func(function(evt) {
+                    assert_equals(evt.target, captureTarget, "pointerup has target of capture node");
+                    assert_equals(evt.relatedTarget, null, "pointerup has relatedTarget of null");
+                    activeCaptureTest.done();
+                }),true);
+            }
+		});	
+	}
+	</script>
+	<style>
+		.target {
+			width:300px;
+			padding: 2em;
+			border: 1px solid orange;
+		}
+		.noTouchAction {
+			touch-action: none;
+		}
+		#captureTarget {
+			/* Capture is set to this element off screen */
+			position: absolute;
+			top: -1px;
+			left: -1px;
+			width: 1px;
+			height: 1px;
+		}
+		#target0, #target2 {
+			background: green;
+		}
+		#target1 {
+			background: yellow;
+		}
+	</style>
+</head>
+<body onload="run()">
+	<h1>Pointer Events setPointerCapture() Tests</h1>
+	<div class="noTouchAction">
+		<div id="target0" class="target">First, start with your pointing device here.</div>
+		<div id="target1" class="target">Second, <b>hover</b> over here.</div>
+		<div id="target2" class="target">Third, click on this box.</div>
+	</div>
+	<div id="captureTarget"></div>
+	<div id="log"></div>
+</body>
+</html>
