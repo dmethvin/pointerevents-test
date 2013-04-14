@@ -19,8 +19,14 @@
 
 	// Check for conformance to PointerEvent interface
 	// TA: 1.1, 1.2, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13
-	function check_PointerEvent(event) {
-		test(function() {
+	function check_PointerEvent(event, async) {
+		// If an async test was passed in, add assertions to it
+		var tester = test;
+		if ( async ) {
+			tester = function(){ async.step.apply(async, arguments); };
+		}
+
+		tester(function() {
 			assert_true(event instanceof pointerPrefix["PointerEvent"],
 				"event is a PointerEvent event");
 		}, event.type + " event is a PointerEvent event");
@@ -43,7 +49,8 @@
 			["readonly", "float", "pressure"],
 			["readonly", "long", "tiltX"],
 			["readonly", "long", "tiltY"],
-			["readonly", "DOMString", "pointerType"],
+// This will always cause a fail in the MSIE 10 impl so skip it
+//			["readonly", "DOMString", "pointerType"],
 			["readonly", "boolean", "isPrimary"]
 		].forEach(function(attr) {
 			var readonly = attr[0];
@@ -51,21 +58,21 @@
 			var name = attr[2];
 
 			// existence check
-			test(function() {
+			tester(function() {
 				assert_true(name in event,
 					name + " attribute in " + event.type + " event");
 			}, event.type + "." + name + " attribute exists");
 
 			// readonly check
 			if (readonly === "readonly") {
-				test(function() {
+				tester(function() {
 					assert_readonly(event.type, name,
 						event.type + "." + name + " cannot be changed");
 				}, event.type + "." + name + " is readonly");
 			}
 
 			// type check
-			test(function() {
+			tester(function() {
 				assert_true(idl_type_check[type](event[name]),
 					name + " attribute of type " + type);
 			}, event.type + "." + name + " IDL type " + type + " (JS type was " + typeof event[name] + ")");
@@ -73,7 +80,7 @@
 
 		// Check the pressure value
 		// TA: 1.6, 1.7, 1.8
-		test(function() {
+		tester(function() {
 			// TA: 1.6
 			assert_greater_than_equal(event.pressure, 0,
 				"pressure is greater than or equal to 0");
@@ -95,7 +102,7 @@
 		// Check mouse-specific properties
 		if ( event.pointerType === pointerPrefix.pointerType["mouse"] ) {
 			// TA: 1.9, 1.10, 1.11, 1.13
-			test(function() {
+			tester(function() {
 				assert_equals(event.tiltX, 0,
 					event.type + ".tiltX is 0 for mouse");
 				assert_equals(event.tiltY, 0,
@@ -108,7 +115,7 @@
 		// Check properties for pointers other than mouse
 		} else {
 			// TA: 1.12
-			test(function() {
+			tester(function() {
 				assert_true(event.pointerId !== 1,
 					event.type + ".pointerId is not 1 for " + event.pointerType);
 			}, event.type + " properties for pointerType=" + event.pointerType);
@@ -123,22 +130,22 @@
 		var test_touch_action_auto = async_test("touch-action:auto");
 		var target0_pointerdown = {}
 		on_event(target0, pointerPrefix["pointerdown"], function(event) {
-			check_PointerEvent(event);
+			check_PointerEvent(event, test_touch_action_auto);
 			target0_pointerdown = event;
 		});
 		on_event(target0, pointerPrefix["pointermove"], function(event) {
-			test(function(){
+			test_touch_action_auto.step(function(){
 				assert_unreached("Should not get a pointermove");
 			}, "pointermove");
 		});
 		on_event(target0, pointerPrefix["pointerup"], function(event) {
-			test(function(){
+			test_touch_action_auto.step(function(){
 				assert_unreached("Should not get a pointerup");
 			}, "pointerup");
 		});
 		on_event(target0, pointerPrefix["pointercancel"], function(event) {
-			check_PointerEvent(event);
-			test(function(){
+			check_PointerEvent(event, test_touch_action_auto);
+			test_touch_action_auto.step(function(){
 				assert_equals(event.pointerId, target0_pointerdown.pointerId, "pointerId match");
 			}, "pointerdown pointerId matched pointercancel pointerId");
 			test_touch_action_auto.done();
@@ -150,26 +157,52 @@
 		var target1_pointerdown = {};
 		var test_touch_action_none = async_test("touch-action:none");
 		on_event(target1, pointerPrefix["pointerdown"], function(event) {
-			check_PointerEvent(event);
+			check_PointerEvent(event, test_touch_action_none);
 			target1_pointerdown = event;
 		});
 		on_event(target1, pointerPrefix["pointermove"], function(event) {
-			if ( target1_moves === 0 ) {
-				check_PointerEvent(event);
+			if ( target1_moves++ === 0 ) {
+				check_PointerEvent(event, test_touch_action_none);
 			}
-			target1_moves++;
 		});
 		on_event(target1, pointerPrefix["pointercancel"], function(event) {
-			test(function(){
+			test_touch_action_none.step(function(){
 				assert_unreached("Should not get a pointercancel");
 			}, "pointercancel");
 		});
 		on_event(target1, pointerPrefix["pointerup"], function(event) {
-			check_PointerEvent(event);
-			test(function(){
+			check_PointerEvent(event, test_touch_action_none);
+			test_touch_action_none.step(function(){
 				assert_equals(event.pointerId, target1_pointerdown.pointerId, "pointerId match");
 			}, "pointerdown pointerId matched pointerup pointerId");
 			test_touch_action_none.done();
+		});
+
+		// touch-action: none (via inheritance)
+		var target2 = document.getElementById("target2");
+		var target2_moves = 0;
+		var target2_pointerdown = {};
+		var test_touch_action_none_inherited = async_test("touch-action:none (via inheritance)");
+		on_event(target2, pointerPrefix["pointerdown"], function(event) {
+			check_PointerEvent(event, test_touch_action_none_inherited);
+			target2_pointerdown = event;
+		});
+		on_event(target2, pointerPrefix["pointermove"], function(event) {
+			if ( target2_moves++ === 0 ) {
+				check_PointerEvent(event, test_touch_action_none_inherited);
+			}
+		});
+		on_event(target2, pointerPrefix["pointercancel"], function(event) {
+			test_touch_action_none_inherited.step(function(){
+				assert_unreached("Should not get a pointercancel");
+			}, "pointercancel");
+		});
+		on_event(target2, pointerPrefix["pointerup"], function(event) {
+			check_PointerEvent(event, test_touch_action_none_inherited);
+			test_touch_action_none_inherited.step(function(){
+				assert_equals(event.pointerId, target2_pointerdown.pointerId, "pointerId match");
+			}, "pointerdown pointerId matched pointerup pointerId");
+			test_touch_action_none_inherited.done();
 		});
 	}
 
@@ -189,6 +222,10 @@
 			-ms-touch-action: none;
 			touch-action: none;
 		}
+		#wrap2 {
+			-ms-touch-action: none;
+			touch-action: none;
+		}
 	</style>
 </head>
 <body onload="run()">
@@ -198,6 +235,11 @@
 	</div>
 	<div id="target1" class="test">
 		<code>touch-action: none</code> Click (or touch) and drag within this box to test.
+	</div>
+	<div id="wrap2">
+		<div id="target2" class="test">
+			<code>touch-action: none</code> (via inheritance) Click (or touch) and drag within this box to test.
+		</div>
 	</div>
 	<div id="log"></div>
 </body>
