@@ -14,29 +14,65 @@
 	<script src="pointer-prefix.js"></script>
 	<script>
 		var test_capture = async_test("Capture events");
+		var test_related_target = async_test("Check target and relatedTarget");
 
 		function run() {
 			var target = document.getElementById("target");
 			var capturedId = -1;
 			var syncTestFlag;
 			var pointerCaptured = false;
-			var pointerReleased = false;
+			var seenPointerCaptured = false;
+			var seenPointerReleased = false;
+			target.style[pointerPrefix["touchAction"]] = "none";
+
+			// NOTE: Not using assert_throws because it doesn't support InvalidPointerId
+			test(function() {
+				try {
+					target[pointerPrefix["setPointerCapture"]](-1);
+					assert_true(false, "Calling releasePointerCapture with invalid id didn't throw.");
+				} catch (ex) {
+					assert_equals(ex.name, "InvalidPointerId");
+				}
+			}, "Calling setPointerCapture with invalid id should throw InvalidPointerId DOMException");
+
+			test(function() {
+				try {
+					target[pointerPrefix["releasePointerCapture"]](-1);
+					assert_true(false, "Calling releasePointerCapture with invalid id didn't throw.");
+				} catch (ex) {
+					assert_equals(ex.name, "InvalidPointerId");
+				}
+			}, "Calling releasePointerCapture with invalid id should throw InvalidPointerId DOMException");
 
 			function onPointerEvent(event) {
-				if (pointerCaptured) {
+				if (event.pointerId !== capturedId)
+					return;
+
+				if (seenPointerCaptured) {
 					test(function() {
 						assert_equals(event.type, pointerPrefix["gotpointercapture"],
 							"First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"])
 					}, "First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"]);
-					pointerCaptured = false;
+					seenPointerCaptured = false;
+					return;
 				}
 
-				if (pointerReleased) {
+				if (seenPointerReleased) {
 					test(function() {
 						assert_equals(event.type, pointerPrefix["lostpointercapture"],
 								"First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"])
 					}, "First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"]);
-					pointerReleased = false;
+					seenPointerReleased = false;
+					return;
+				}
+
+				if (pointerCaptured) {
+					test_related_target.step(function() {
+						assert_equals(event.target, target,
+							"target of all pointer events should be the captuting element.");
+						assert_equals(event.relatedTarget, null,
+							"relatedTarget for all pointer events should be null while captuging.");
+					});
 				}
 			}
 
@@ -49,16 +85,21 @@
 				"pointerout",
 				"pointerenter",
 				"gotpointercapture",
-				"lostpointercapture"
+				"lostpointercapture",
+				"mousedown",
+				"mouseup",
+				"mousemove",
+				"mouseover",
+				"mouseout"
 			].forEach(function(eventName){
-				on_event(target, pointerPrefix[eventName], onPointerEvent)
+				on_event(target, pointerPrefix[eventName], onPointerEvent);
 			});
 
 			on_event(target, pointerPrefix["pointerdown"], function(event) {
 				capturedId = event.pointerId;
 				syncTestFlag = false;
 				target[pointerPrefix["setPointerCapture"]](capturedId);
-				pointerCaptured = true;
+				seenPointerCaptured = true;
 				syncTestFlag = true;
 			});
 
@@ -67,20 +108,21 @@
 					assert_true(syncTestFlag, "gotpointercapture fired asynchronously");
 				}, "gotpointercapture fired asynchronously");
 				test(function() {
-					assert_true(event.pointerId === capturedId,
+					assert_equals(event.pointerId, capturedId,
 						"gotpointercapture event received for pointerId " + capturedId);
 				}, "gotpointercapture event received for pointerId " + capturedId);
+				pointerCaptured = true;
 			});
 
 			on_event(target, pointerPrefix["pointerup"], function(event) {
 				test(function() {
-					assert_true(event.pointerId === capturedId,
+					assert_equals(event.pointerId, capturedId,
 						"pointerup event received for same id as pointer up " + capturedId);
 				}, "pointerup event received for same id as pointer up " + capturedId);
 
 				syncTestFlag = false;
 				target[pointerPrefix["releasePointerCapture"]](capturedId);
-				pointerReleased = true;
+				seenPointerReleased = true;
 				syncTestFlag = true;
 			});
 
@@ -89,10 +131,12 @@
 					assert_true(syncTestFlag, "lostpointercapture fired asynchronously");
 				}, "lostpointercapture fired asynchronously");
 				test(function() {
-					assert_true(event.pointerId === capturedId,
+					assert_equals(event.pointerId, capturedId,
 						"lostpointercapture event received for pointerId " + capturedId);
 				}, "lostpointercapture event received for pointerId " + capturedId);
 
+				pointerCaptured = false;
+				test_related_target.done();
 				test_capture.done();
 			});
 		}
