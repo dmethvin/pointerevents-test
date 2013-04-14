@@ -24,7 +24,7 @@ pointerPrefix = (function() {
 			lostpointercapture: "lostpointercapture",
 			maxTouchPoints: "maxTouchPoints",
 			pointerType: { "mouse": "mouse", "touch": "touch", "stylus": "stylus" },
-			touchAction: "touch-action",
+			touchAction: "touchAction",
 			PointerEvent: PointerEvent,
 			setPointerCapture: "setPointerCapture",
 			releasePointerCapture: "releasePointerCapture"
@@ -45,7 +45,7 @@ pointerPrefix = (function() {
 			lostpointercapture: "MSLostPointerCapture",
 			maxTouchPoints: "msMaxTouchPoints",
 			pointerType: { "mouse": 4, "touch": 2, "stylus": 99 },
-			touchAction: "-ms-touch-action",
+			touchAction: "msTouchAction",
 			PointerEvent: MSPointerEvent,
 			setPointerCapture: "msSetPointerCapture",
 			releasePointerCapture: "msReleasePointerCapture"
