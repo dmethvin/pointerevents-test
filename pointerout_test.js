@@ -36,6 +36,7 @@ function run() {
       });
   }
 
+  // TODO: Migrate away: this doesn't simplify the processing 
   // Process all of the scored events 
   function processEventStream(f) { 
     for (var pointer in eventStream) {
@@ -72,8 +73,30 @@ function run() {
   // TA: 7.5 When touch, a device that does not support hover, after
   // firing the pointerup event the pointerout event must be
   // dispatched.
+  setTimeout(
+    function () {
+      test(
+        function() {
 
-
+          for (var pointer in eventStream) {
+            // console.log('eventStream:' + eventStream[pointer].pointerType);
+            if (eventStream[pointer].pointerType === pointerPrefix.pointerType['touch']) { 
+              eventStream[pointer].events.forEach(
+                function(e, i, c) { 
+                  if (e === pointerPrefix['pointerup']) {
+                    // console.log('FAIL: pointerout not after pointerup on no-hover device:' + c);
+                    assert_equals( 
+                      c[i + 1],
+                      pointerPrefix['pointerout']);
+                  }
+                }
+              );
+            }
+          }
+        },
+        '7.5   When touch, a device that does not support hover, after firing the pointerup event the pointerout event must be dispatched.'
+      )
+    }, 2000);
 
   // TA: 7.6	 After firing the pointercancel event the pointerout
   // event must be dispatched.	
@@ -85,7 +108,7 @@ function run() {
           processEventStream(
             function(e, i, c) {
               if (e === pointerPrefix['pointercancel']) {
-                console.log('FAIL: pointerout not after pointercancel:' + c);
+                // console.log('FAIL: pointerout not after pointercancel:' + c);
                 // Not checking end of array works here since
                 // pointercancel shouldn't be last
                 assert_equals( 
