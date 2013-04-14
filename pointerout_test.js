@@ -1,14 +1,9 @@
-// Pointer out 
-detected = false;
-
 // Harness 
 function run() {
 
   // Page setup 
   var target0 = document.getElementById("target0");
   var event_tested  = "pointerout";
-
-
 
   // Event logging 
   // Check each of the unique pointer events 
@@ -17,7 +12,6 @@ function run() {
 
   // Log all events  
   var pointerEvents = 'pointerdown,pointerup,pointercancel,pointermove,pointerover,pointerout,pointerenter,pointerleave,gotpointercapture,lostpointercapture'.split(',');
-
   for (var i = 0; i < pointerEvents.length; i++)  {
     //    console.log(pointerEvents[i] + ' logging on body');
     on_event(
@@ -36,34 +30,21 @@ function run() {
       });
   }
 
-  // TODO: Migrate away: this doesn't simplify the processing 
-  // Process all of the scored events 
-  function processEventStream(f) { 
-    for (var pointer in eventStream) {
-      //      console.log('eventStream:' + pointer);
-      eventStream[pointer].events.forEach(
-        function(e, i, c) { 
-          f(e, i, c);
-        }
-      );
-    }
-  }; 
-
+  // Test Assertions for pointerout events
 
   // TA: 7.1  Pointing device is moved out of the hit test boundaries
   // of an element
+  detected71 = false;
 	on_event(
     target0, 
     pointerPrefix[event_tested], 
     function(event) {
-
-      detected = true; 
+      detected71 = true; 
 	    detected_pointertypes[event_tested] = true;
-
       test(
         function() { 
 	        assert_true(
-            detected,
+            detected71,
 		        event_tested + " event seen");
         }, 
         '7.1  Pointing device is moved out of the hit test boundaries of an element');
@@ -77,7 +58,6 @@ function run() {
     function () {
       test(
         function() {
-
           for (var pointer in eventStream) {
             // console.log('eventStream:' + eventStream[pointer].pointerType);
             if (eventStream[pointer].pointerType === pointerPrefix.pointerType['touch']) { 
@@ -98,6 +78,7 @@ function run() {
       )
     }, 2000);
 
+
   // TA: 7.6	 After firing the pointercancel event the pointerout
   // event must be dispatched.	
   setTimeout(
@@ -105,18 +86,21 @@ function run() {
       //      console.log(JSON.stringify(eventStream));
       test(
         function() {
-          processEventStream(
-            function(e, i, c) {
-              if (e === pointerPrefix['pointercancel']) {
-                // console.log('FAIL: pointerout not after pointercancel:' + c);
-                // Not checking end of array works here since
-                // pointercancel shouldn't be last
-                assert_equals( 
-                  c[i + 1],
-                  pointerPrefix['pointerout']);
+          for (var pointer in eventStream) {
+            //      console.log('eventStream:' + pointer);
+            eventStream[pointer].events.forEach(
+              function(e, i, c) { 
+                if (e === pointerPrefix['pointercancel']) {
+                  // console.log('FAIL: pointerout not after pointercancel:' + c);
+                  // Not checking end of array works here since
+                  // pointercancel shouldn't be last
+                  assert_equals( 
+                    c[i + 1],
+                    pointerPrefix['pointerout']);
+                }
               }
-            }
-          )
+            );
+          }
         },
         '7.6 After firing the pointercancel event the pointerout event must be dispatched.'
       )
