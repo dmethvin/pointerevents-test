@@ -18,6 +18,7 @@ function run() {
       document.getElementsByTagName('body')[0],
       pointerPrefix[pointerEvents[i]],
       function(event) {
+	      detected_pointertypes[event.type] = true;
         //        console.log(event.pointerId + event.type);
         if (eventStream[event.pointerId]) { 
           eventStream[event.pointerId].events.push(event.type);
@@ -40,7 +41,7 @@ function run() {
     pointerPrefix[event_tested], 
     function(event) {
       detected71 = true; 
-	    detected_pointertypes[event_tested] = true;
+	    detected_pointertypes[pointerPrefix[event_tested]] = true;
       test(
         function() { 
 	        assert_true(
