@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below) written by Cathy Chan
+-->
+<head>
+	<title>Validate Mouse button states are represendted correctly in event  properties</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:shruti@malugu.com">
+	<link rel="author" href="mailto:dave.methvin@gmail.com">
+	<link rel="help" href="https://dvcs.w3.org/hg/pointerevents/raw-file/tip/pointerEvents.html#chorded-button-interactions">
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="./testharness.js"></script>
+	<script src="pointer-prefix.js"></script>
+	<script>
+	setup({ explicit_done: true });
+
+	var detected_pointertypes = {};
+	add_completion_callback(showPointerTypes);
+
+	// Check for conformance to PointerEvent interface
+	// TA: 1.1, 1.2, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13
+	function check_PointerEvent(event) {
+		test(function() {
+			assert_true(event instanceof pointerPrefix["PointerEvent"],
+				"event is a PointerEvent event");
+		}, event.type + " event is a PointerEvent event");
+
+		// Check attributes for conformance to WebIDL:
+		// * attribute exists
+		// * has proper type
+		// * if the attribute is "readonly", it cannot be changed
+		// TA: 1.1, 1.2
+		var idl_type_check = {
+			"long": function( v ) { return typeof v === "number" && Math.round(v) === v; },
+			"float": function( v ) { return typeof v === "number"; },
+			"DOMString": function( v ) { return typeof v === "string"; },
+			"boolean": function( v ) { return typeof v === "boolean" }
+		};
+		[
+			["readonly", "long", "pointerId"],
+			["readonly", "long", "width"],
+			["readonly", "long", "height"],
+			["readonly", "float", "pressure"],
+			["readonly", "long", "tiltX"],
+			["readonly", "long", "tiltY"],
+			["readonly", "DOMString", "pointerType"],
+			["readonly", "boolean", "isPrimary"]
+		].forEach(function(attr) {
+			var readonly = attr[0];
+			var type = attr[1];
+			var name = attr[2];
+
+			// existence check
+			test(function() {
+				assert_true(name in event,
+					name + " attribute in " + event.type + " event");
+			}, event.type + "." + name + " attribute exists");
+
+			// readonly check
+			if (readonly === "readonly") {
+				test(function() {
+					assert_readonly(event.type, name,
+						event.type + "." + name + " cannot be changed");
+				}, event.type + "." + name + " is readonly");
+			}
+
+			// type check
+			test(function() {
+				assert_true(idl_type_check[type](event[name]),
+					name + " attribute of type " + type);
+			}, event.type + "." + name + " IDL type " + type + " (JS type was " + typeof event[name] + ")");
+		});
+
+		// Check the pressure value
+		// TA: 1.6, 1.7, 1.8
+		test(function() {
+			// TA: 1.6
+			assert_greater_than_equal(event.pressure, 0,
+				"pressure is greater than or equal to 0");
+			assert_less_than_equal(event.pressure, 1,
+				"pressure is less than or equal to 1");
+
+			// TA: 1.7, 1.8
+			if ( event.pointerType === pointerPrefix.pointerType["mouse"] ) {
+				if ( event.buttons === 0 ) {
+					assert_equals( event.pressure, 0,
+						"pressure is 0 for mouse with no buttons pressed");
+				} else {
+					assert_equals( event.pressure, 0.5,
+						"pressure is 0.5 for mouse with a button pressed");
+				}
+			}
+		}, event.type + ".pressure value is valid" );
+
+		// Check mouse-specific properties
+		if ( event.pointerType === pointerPrefix.pointerType["mouse"] ) {
+			// TA: 1.9, 1.10, 1.11, 1.13
+			test(function() {
+				assert_equals(event.tiltX, 0,
+					event.type + ".tiltX is 0 for mouse");
+				assert_equals(event.tiltY, 0,
+					event.type + ".tiltY is 0 for mouse");
+				assert_equals(event.pointerId, 1,
+					event.type + ".pointerId is 1 for mouse");
+				assert_true(event.isPrimary,
+					event.type + ".isPrimary is true for mouse");
+			}, event.type + " properties for pointerType=mouse");
+		// Check properties for pointers other than mouse
+		} else{
+			// TA: 1.12
+			test(function() {
+				assert_true(event.pointerId !== 1,
+					event.type + ".pointerId is not 1 for " + event.pointerType);
+			}, event.type + " properties for pointerType=" + event.pointerType);
+		}
+	}
+	
+	function run() {
+		var target0 = document.getElementById("target0");
+		var target1 = document.getElementById("target1");
+		var target2 = document.getElementById("target2");
+		var target3 = document.getElementById("target3");
+		var target4 = document.getElementById("target4");
+		
+		on_event(target0, pointerPrefix["pointerdown"], function(event) {			
+			validateProperties(event, 0, 1);
+			detected_pointertypes[ event.pointerType ] = true;
+		});	
+		
+		on_event(target1, pointerPrefix["pointerdown"], function(event) {			
+			validateProperties(event, 1, 4);
+			detected_pointertypes[ event.pointerType ] = true;
+		});
+		
+		on_event(target2, pointerPrefix["pointerdown"], function(event) {			
+			validateProperties(event, 2, 2);
+			detected_pointertypes[ event.pointerType ] = true;
+		});
+		
+		on_event(target3, pointerPrefix["pointerdown"], function(event) {			
+			validateProperties(event, 3, 8);
+			detected_pointertypes[ event.pointerType ] = true;
+		});
+		
+		on_event(target4, pointerPrefix["pointerdown"], function(event) {			
+			validateProperties(event, 4, 16);
+			detected_pointertypes[ event.pointerType ] = true;
+		});
+	
+	
+	}
+
+	function validateProperties(event, buttonValue, buttonsValue)
+	{
+		var t = async_test("Validate that the device button state is correctly represented by event properties")
+		t.step(function() {
+			assert_equals(event.button, buttonValue);
+			assert_equals(event.buttons, buttonsValue);
+		});
+        t.done();	
+	}
+	
+	function showPointerTypes() {
+		var complete_notice = document.getElementById("complete-notice");
+		var pointertype_log = document.getElementById("pointertype-log");
+		var pointertypes = Object.keys(detected_pointertypes);
+		pointertype_log.innerHTML = pointertypes.length ?
+			pointertypes.join(",") : "(none)";
+		complete_notice.style.display = "block";
+	}
+
+	</script>
+	<style>
+		html {
+	    	touch-action: none;
+	    }
+		
+		div {
+			margin: 0em;
+			padding: 2em;
+		}
+		#target0 {
+			background: yellow;
+			border: 1px solid orange;
+		}
+		
+		#target1 {
+			background: orange;
+			border: 1px solid yellow;
+		}
+		
+		#target2 {
+			background: green;
+			border: 1px solid yellow;
+		}
+		
+		#target3 {
+			background: yellow;
+			border: 1px solid orange;
+		}
+		
+		#target4 {
+			background: orange;
+			border: 1px solid yellow;
+		}
+				
+		#complete-notice {
+			background: #afa;
+			border: 1px solid #0a0;
+			display: none;
+		}
+		#pointertype-log {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body onload="run()">
+	<h1>Validate button properties in the button scenarios</h1>
+	<div id="target0">
+			1. Press the left mouse button down and release<br/>
+		</div>
+		
+	<div id = "target1">
+		1.Press the middle button down and release</br>
+	</div>
+		
+	<div id = "target2">
+		1.Press the right button down and release</br>
+	</div>
+	
+	<div id = "target3">
+		1.Press the mouse back button and release</br>
+	</div>
+	
+	<div id = "target4">
+		1.Press the mouse forward button and release</br>
+	</div>
+	
+	<div id="complete-notice">
+		<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
+		<p>Would you like to <a href="#">run the tests again</a> ?</p>
+	</div>
+	<div id="log"></div>
+</body
+</html>
