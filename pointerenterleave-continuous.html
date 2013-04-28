@@ -6,7 +6,7 @@
 	This document references Test Assertions (abbrev TA below) written by Cathy Chan
 -->
 <head>
-	<title>Pointer Events pointerleave Test for continuous pointer movement through a child element</title>
+	<title>Pointer Events pointer enter/leave Test for continuous pointer movement through a child element</title>
 	<meta name="viewport" content="width=device-width">
 	<link rel="author" href="mailto:hillbrad@gmail.com">
 	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
@@ -25,16 +25,28 @@
 	var target0LeaveCount = 0;
 	var target1LeaveCount = 0;
 
+	var target0OverCount = 0;
+	var target1OverCount = 0;
+
+	var target0EnterCount = 0;
+	var target1EnterCount = 0;
+	
+
 	var debugLog = "";
 
 	function showPointerTypes() {
 		var complete_notice = document.getElementById("complete-notice");
 		var pointertype_log = document.getElementById("pointertype-log");
 		var pointertypes = Object.keys(detected_pointertypes);
-		pointertype_log.innerHTML = "<p>pointerout events for cyan box: " + target1OutCount + "</p>" +
+		pointertype_log.innerHTML = 
+		"<p>pointerout events for cyan box: " + target1OutCount + "</p>" +
 		"<p>pointerout events for yellow box: " + target0OutCount + "</p>" +
 		"<p>pointerleave events for cyan box: " + target1LeaveCount + "</p>" +
 		"<p>pointerleave events for yellow box: " + target0LeaveCount + "</p>" + 
+		"<p>pointerover events for cyan box: " + target1OverCount + "</p>" +
+		"<p>pointerover events for yellow box: " + target0OverCount + "</p>" +
+		"<p>pointerenter events for cyan box: " + target1EnterCount + "</p>" +
+		"<p>pointerenter events for yellow box: " + target0EnterCount + "</p>" + 
 		"<p>order: " + debugLog + "</p>";	
 		complete_notice.style.display = "block";
 	}
@@ -51,7 +63,7 @@
 		var testStarted = false;
 		var testDone = false;
 
-		var test_pointerleave = async_test("pointerleave sequence.");
+		var test_pointerenterleave = async_test("pointerenterleave sequence.");
 
 		on_event(start, pointerPrefix["pointerover"], function(event) {
 			testStarted = true;
@@ -60,6 +72,11 @@
 			target1OutCount = 0;
 			target0LeaveCount = 0;
 			target1LeaveCount = 0;
+			target0OverCount = 0;
+			target1OverCount = 0;
+			target0EnterCount = 0;
+			target1EnterCount = 0;
+			
 		});
 
 		on_event(target0, pointerPrefix["pointerout"], function(event) {
@@ -88,6 +105,34 @@
 			debugLog += " mouseleave[cyan]  ";
 		});
 
+
+		on_event(target0, pointerPrefix["pointerover"], function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target0OverCount++;
+			debugLog += " pointerover[yellow]  ";
+		});
+
+		on_event(target1, pointerPrefix["pointerover"], function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target1OverCount++;
+			debugLog += " pointerover[cyan]  ";
+		});
+
+		// XXX this is using mouseenter, should be pointerPrefix["pointerenter"] but not implemented
+		on_event(target0, "mouseenter", function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target0EnterCount++;
+			debugLog += " mouseenter[yellow]  ";
+		});
+
+		// XXX this is using mouseenter, should be pointerPrefix["pointerenter"] but not implemented
+		on_event(target1, "mouseenter", function(event) {
+			detected_pointertypes[ event.pointerType ] = true;
+			target1EnterCount++;
+			debugLog += " mouseenter[cyan]  ";
+		});
+		
+
 		// there should be 3 target0 out events because:
 		//    1) moving from yellow to cyan
 		//    2) moving from cyan to yellow bubbles up to yellow
@@ -98,14 +143,22 @@
 		on_event(end, pointerPrefix["pointerover"], function(event) {
 			if(testStarted && !testDone) {
 				testDone = true;
-				test_pointerleave.step(function () { 
+				test_pointerenterleave.step(function () { 
 					assert_equals(target0OutCount, 3, "yellow box pointerout count");
 					assert_equals(target1OutCount, 1, "cyan box pointerout count");
 					assert_equals(target0LeaveCount, 1, "yellow box pointerleave count");
 					assert_equals(target1LeaveCount, 1, "cyan box pointerleave count");
+					assert_true(target0OutCount > target1OutCount, "child count should be > parent due to bubbling for out");
+					assert_true(target0LeaveCount == target1LeaveCount, "child count should be == parent as no bubbling for leave");
+					assert_equals(target0OverCount, 3, "yellow box pointerover count");
+					assert_equals(target1OverCount, 1, "cyan box pointerover count");
+					assert_equals(target0EnterCount, 1, "yellow box pointerenter count");
+					assert_equals(target1EnterCount, 1, "cyan box pointerenter count");
+					assert_true(target0OverCount > target1OverCount, "child count should be > parent due to bubbling for over");
+					assert_true(target0EnterCount == target1EnterCount, "child count should be == parent as no bubbling for enter");
 					} );
 				showPointerTypes();
-				test_pointerleave.done();	
+				test_pointerenterleave.done();	
 				done();
 			}
 		});
@@ -219,8 +272,8 @@
 	</style>
 </head>
 <body onload="run()">
-	<h1>Pointer Events pointerleave Test for continuous pointer movement through a child element</h1>
-	<h2>TODO: this test currently uses mouseleave events rather than pointerleave because pointerleave isn't implemented.</h2>
+	<h1>Pointer Events pointer enter/leave Test for continuous pointer movement through a child element</h1>
+	<h2>TODO: this test currently uses mouse enter/leave events rather than pointer enter/leave because pointer enter/leave isn't implemented.</h2>
 	<div id="startBox">
 		Start with your pointer here.
 	</div>

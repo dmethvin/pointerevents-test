@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+-->
+<head>
+	<title>Pointer Events Capture Events Tests</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:rodrigos@outlook.com">
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<link rel="stylesheet" href="testharness.css"/>
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="testharness.js"></script>
+	<script src="pointer-prefix.js"></script>
+	<script>
+		var test_capture = async_test("Capture events");
+		var test_related_target = async_test("Check target and relatedTarget");
+
+		function run() {
+			var target = document.getElementById("target");
+			var capturedId = -1;
+			var syncTestFlag;
+			var pointerCaptured = false;
+			var seenPointerCaptured = false;
+			var seenPointerReleased = false;
+			target.style[pointerPrefix["touchAction"]] = "none";
+
+			// NOTE: Not using assert_throws because it doesn't support InvalidPointerId
+			test(function() {
+				try {
+					target[pointerPrefix["setPointerCapture"]](-1);
+					assert_true(false, "Calling releasePointerCapture with invalid id didn't throw.");
+				} catch (ex) {
+					assert_equals(ex.name, "InvalidPointerId");
+				}
+			}, "Calling setPointerCapture with invalid id should throw InvalidPointerId DOMException");
+
+			test(function() {
+				try {
+					target[pointerPrefix["releasePointerCapture"]](-1);
+					assert_true(false, "Calling releasePointerCapture with invalid id didn't throw.");
+				} catch (ex) {
+					assert_equals(ex.name, "InvalidPointerId");
+				}
+			}, "Calling releasePointerCapture with invalid id should throw InvalidPointerId DOMException");
+
+			function onPointerEvent(event) {
+				if (event.pointerId !== capturedId)
+					return;
+
+				if (seenPointerCaptured) {
+					test(function() {
+						assert_equals(event.type, pointerPrefix["gotpointercapture"],
+							"First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"])
+					}, "First event to fire after setPointerCapture was " + pointerPrefix["gotpointercapture"]);
+					seenPointerCaptured = false;
+					return;
+				}
+
+				if (seenPointerReleased) {
+					test(function() {
+						assert_equals(event.type, pointerPrefix["lostpointercapture"],
+								"First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"])
+					}, "First event to fire after releasePointerCapture was " + pointerPrefix["lostpointercapture"]);
+					seenPointerReleased = false;
+					return;
+				}
+
+				if (pointerCaptured) {
+					test_related_target.step(function() {
+						assert_equals(event.target, target,
+							"target of all pointer events should be the captuting element.");
+						assert_equals(event.relatedTarget, null,
+							"relatedTarget for all pointer events should be null while captuging.");
+					});
+				}
+			}
+
+			[
+				"pointerdown",
+				"pointerup",
+				"pointercancel",
+				"pointermove",
+				"pointerover",
+				"pointerout",
+				"pointerenter",
+				"gotpointercapture",
+				"lostpointercapture",
+				"mousedown",
+				"mouseup",
+				"mousemove",
+				"mouseover",
+				"mouseout"
+			].forEach(function(eventName){
+				on_event(target, pointerPrefix[eventName], onPointerEvent);
+			});
+
+			on_event(target, pointerPrefix["pointerdown"], function(event) {
+				capturedId = event.pointerId;
+				syncTestFlag = false;
+				target[pointerPrefix["setPointerCapture"]](capturedId);
+				seenPointerCaptured = true;
+				syncTestFlag = true;
+			});
+
+			on_event(target, pointerPrefix["gotpointercapture"], function(event) {
+				test(function(){
+					assert_true(syncTestFlag, "gotpointercapture fired asynchronously");
+				}, "gotpointercapture fired asynchronously");
+				test(function() {
+					assert_equals(event.pointerId, capturedId,
+						"gotpointercapture event received for pointerId " + capturedId);
+				}, "gotpointercapture event received for pointerId " + capturedId);
+				pointerCaptured = true;
+			});
+
+			on_event(target, pointerPrefix["pointerup"], function(event) {
+				test(function() {
+					assert_equals(event.pointerId, capturedId,
+						"pointerup event received for same id as pointer up " + capturedId);
+				}, "pointerup event received for same id as pointer up " + capturedId);
+
+				syncTestFlag = false;
+				target[pointerPrefix["releasePointerCapture"]](capturedId);
+				seenPointerReleased = true;
+				syncTestFlag = true;
+			});
+
+			on_event(target, pointerPrefix["lostpointercapture"], function(event) {
+				test(function(){
+					assert_true(syncTestFlag, "lostpointercapture fired asynchronously");
+				}, "lostpointercapture fired asynchronously");
+				test(function() {
+					assert_equals(event.pointerId, capturedId,
+						"lostpointercapture event received for pointerId " + capturedId);
+				}, "lostpointercapture event received for pointerId " + capturedId);
+
+				pointerCaptured = false;
+				test_related_target.done();
+				test_capture.done();
+			});
+		}
+
+	</script>
+	<style>
+		#target {
+			padding: 2em;
+			background: yellow;
+			border: 2px solid green;
+			text-align: center;
+			color: blue;
+		}
+	</style>
+</head>
+<body onload="run()">
+	<h1>Pointer Events Capture Events Tests</h1>
+	<div id="target">
+		Click or tap here
+	</div>
+	<div id="log"></div>
+</body>
+</html>

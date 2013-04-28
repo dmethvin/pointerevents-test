@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+<!--
+	Test cases for Pointer Events v1 spec
+
+	This document references Test Assertions (abbrev TA below) written by Cathy Chan
+-->
+<head>
+	<title>Pointer Events pointermove Tests</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="author" href="mailto:valan@valanbrown.com">
+	<link rel="help" href="http://www.w3.org/wiki/PointerEvents/TestAssertions">
+	<!-- http://w3c-test.org/resources/testharness.js -->
+	<script src="./testharness.js"></script>
+	<script src="pointer-prefix.js"></script>
+	<script>
+		var requiredMovement = 100;
+		var pointerTypeMouse = 4;
+		setup({
+			explicit_done: true
+		});
+
+		function eventName(name) {
+			if (pointerPrefix[name])
+				return pointerPrefix[name];
+			return name;
+		}
+
+		var detected_pointertypes = {};
+		add_completion_callback(showPointerTypes);
+
+		function run() {
+
+			var target0 = document.getElementById("target0");
+			var target1 = document.getElementById("target1");
+			var target0_status = document.getElementById("target0_status");
+			var target1_status = document.getElementById("target1_status");
+			var test_pointermoveReceived = async_test("pointermove event received");
+			var test_movementThreshold = async_test("test has received enough pointer movement");
+			var test_consistentPointerType = async_test("pointerType was consistent for all events with the same pointerId"); // TA: 5.1
+			var test_consistentIsPrimary = async_test("isPrimary was consistent for all events with the same pointerId"); // TA: 5.2
+			var test_buttonStateDispatches = async_test("button state has dispatched pointermove event"); // TA: 5.4
+			var test_buttonAttrs = async_test("pointer type mouse detected, checked 'button' and 'buttons' pointermove event properties"); // TA: 5.8
+			var pastEvents = {};
+			var movement = 0;
+			var stepCounts = {
+				consistentPointerType: 0,
+				consistentIsPrimary: 0,
+				coordsDispatches: 0,
+				buttonAttrs: 0
+			};
+
+			var mouseDepressed = false;
+			on_event(target0, eventName("mousedown"), function() {
+				mouseDepressed = true;
+			});
+			on_event(target0, eventName("mouseup"), function() {
+				mouseDepressed = false;
+			});
+
+			on_event(target0, eventName("pointermove"), function(event) {
+
+				detected_pointertypes[event.pointerType] = true;
+
+				test_pointermoveReceived.done();
+
+				if (movement < requiredMovement) {
+					movement++;
+					target0_status.innerHTML = Math.round((movement/requiredMovement)*100, 0)+"%";
+				}
+
+				var numSteps = 10; // how many steps to run before declaring done
+
+				/* test_consistentPointerType */
+
+				if (stepCounts.consistentPointerType <= numSteps) {
+
+					test_consistentPointerType.step(function() {
+						if (pastEvents[event.pointerId])
+							assert_true((event.pointerType === pastEvents[event.pointerId].pointerType), "pointerType is the same as a previous event with the same pointerId");
+						stepCounts.consistentPointerType++;
+					});
+
+				} else {
+					test_consistentPointerType.done();
+				}
+
+				/* test_consistentIsPrimary */
+
+				if (stepCounts.consistentIsPrimary <= numSteps) {
+
+					test_consistentIsPrimary.step(function() {
+						if (pastEvents[event.pointerId])
+							assert_true((event.isPrimary === pastEvents[event.pointerId].isPrimary), "isPrimary is the same as a previous event with the same pointerId");
+						stepCounts.consistentIsPrimary++;
+					});
+
+				} else {
+					test_consistentIsPrimary.done();
+				}
+
+				/* test_movementThreshold */
+
+				if (movement == requiredMovement) {
+					test_movementThreshold.done();
+					target0_status.innerHTML = "OK";
+				}
+
+				/* test_buttonAttrs */
+
+				if (stepCounts.buttonAttrs <= numSteps) {
+
+					if (event.pointerType == pointerTypeMouse && !mouseDepressed) {
+						test_buttonAttrs.step(function() {
+							assert_true((event.button == -1), "button property is -1");
+							assert_true((event.buttons == 0), "buttons property is 0");
+							stepCounts.buttonAttrs++;
+						});
+					}
+
+				} else {
+					test_buttonAttrs.done();
+				}
+
+				/* */
+
+				pastEvents[event.pointerId] = event;
+
+			});
+
+			/**
+			 * test_buttonStateDispatches
+			 * pointerdown should fire pointermove
+			 */
+			var buttonStateAttached = false;
+			var buttonStateFiredOrTimedOut = false;
+			on_event(target1, eventName("pointerdown"), function(event) {
+
+				test_buttonStateDispatches.step(function() {
+					assert_true(true, "pointerdown has fired");
+				});
+
+				// only attach once
+				if (!buttonStateAttached) {
+
+					on_event(target1, eventName("pointermove"), function(event) {
+						if (!buttonStateFiredOrTimedOut) {
+							test_buttonStateDispatches.step(function() {
+								assert_true(true, "pointermove has fired as a result of pointerdown");
+							});
+							test_buttonStateDispatches.done();
+							buttonStateFiredOrTimedOut = true;
+							target1_status.innerHTML = "OK";
+						}
+					});
+					buttonStateAttached = true;
+
+					// disable the pointermove attach after 3ms.
+					// if pointermove has fired after > 3 ms, it has probably been triggered by actual pointer movement rather than by the pointerdown event
+					setTimeout(function() {
+						buttonStateFiredOrTimedOut = true;
+					}, 3);
+
+				}
+
+			});
+
+		}
+
+		function showPointerTypes() {
+			var complete_notice = document.getElementById("complete-notice");
+			var pointertype_log = document.getElementById("pointertype-log");
+			var pointertypes = Object.keys(detected_pointertypes);
+			pointertype_log.innerHTML = pointertypes.length ?
+					pointertypes.join(",") : "(none)";
+			complete_notice.style.display = "block";
+			target0.style.display = "none";
+			target1.style.display = "none";
+		}
+
+	</script>
+	<style>
+		div {
+			margin: 0em;
+			padding: 2em;
+		}
+		#target0 {
+			background: yellow;
+			border: 1px solid orange;
+			margin-bottom: 20px;
+		}
+		#target1 {
+			background: orange;
+			border: 1px solid orangered;
+		}
+		#complete-notice {
+			background: #afa;
+			border: 1px solid #0a0;
+			display: none;
+		}
+		#pointertype-log {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body onload="run()">
+<h1>Pointer Events pointermove Tests</h1>
+<div id="target0">
+	Move pointer inside this box. <span id="target0_status"></span>
+</div>
+<div id="target1">
+	Click/touch inside this box without moving the pointer. <span id="target1_status"></span>
+</div>
+<div id="complete-notice">
+	<p>The following pointer types were detected: <span id="pointertype-log"></span>.</p>
+	<p>Would you like to <a href="pointermove.html">run the tests again</a> with a different pointer type?</p>
+</div>
+<div id="log"></div>
+</body>
+</html>
